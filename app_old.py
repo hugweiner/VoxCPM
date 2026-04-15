@@ -23,12 +23,13 @@ class VoxCPMDemo:
         self.asr_model: Optional[AutoModel] = AutoModel(
             model=self.asr_model_id,
             disable_update=True,
-            log_level='WARNING',  # changed from DEBUG to reduce noisy logs
+            log_level='ERROR',  # changed from WARNING to ERROR to further suppress noisy logs
             device="cuda:0" if self.device == "cuda" else "cpu",
         )
 
         # TTS model (lazy init)
         self.voxcpm_model: Optional[voxcpm.VoxCPM] = None
+        # NOTE: changed default local model dir to match my local setup
         self.default_local_model_dir = "./models/VoxCPM1.5"
 
     # ---------- Model helpers ----------
@@ -44,6 +45,7 @@ class VoxCPMDemo:
 
         repo_id = os.environ.get("HF_REPO_ID", "").strip()
         if len(repo_id) > 0:
+            # Use double underscore as separator to avoid path confusion with nested orgs
             target_dir = os.path.join("models", repo_id.replace("/", "__"))
             if not os.path.isdir(target_dir):
                 try:
@@ -72,4 +74,3 @@ class VoxCPMDemo:
         if prompt_wav is None:
             return ""
         res = self.asr_model.generate(input=prompt_wav, language="auto", use_itn=True)
-        text = res[0]["text"].split('|>')[-1
